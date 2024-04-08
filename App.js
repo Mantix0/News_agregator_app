@@ -5,113 +5,89 @@ import {
     FlatList,
     StyleSheet,
     Text,
-    StatusBar,
+    StatusBar, Dimensions,
 } from 'react-native';
-import {Button} from "native-base";
+import {Button, Image} from "native-base";
 import {NativeBaseProvider} from "native-base/src/core/NativeBaseProvider";
 import {NavigationContainer} from "@react-navigation/native";
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import * as Screens from "./src/Screens"
+import NavigationIcons from "./index";
+import mainStyles from "./src/Styles";
+import * as colors from './src/res/colors.js'
 
-const DATA = [
-]
-for (let i=0;i<31;i++){
-    DATA.push({
-        id: i.toString(),
-        title: `element №${i}`
-    });
-}
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 
-const Item = ({title}) => (
-    <View style={styles.item}>
-        <Text style={styles.title}>{title}</Text>
-    </View>
-);
 
-const RecommendedScreen = ({navigation }) =>(
-    <NativeBaseProvider>
-    <SafeAreaView style={styles.container}>
-        <Button>Кнопка</Button>
-        <FlatList
-            data={DATA}
-            renderItem={({item}) => <Item title={item.title} />}
+const BottomTabIcon = ({name,focused}) =>{
+    const iconName = `${focused?'': 'in'}active${name}Icon`
+    const imgSrc = NavigationIcons[iconName]
+    const translatedNames = {
+        Popular:'Популярное',
+        Recommended:'Рекомендации',
+        History:'История',
+        Profile:'Профиль'
+    }
+    return(
+    <View style={mainStyles.bottomTabIcon}>
+        <Image
+            {...imgSrc}
+            alt={`${name}`}
+            style={{width:30, height:30}}
         />
-    </SafeAreaView>
-    </NativeBaseProvider>
-);
-
-const PopularScreen = ({navigation }) =>(
-    <NativeBaseProvider>
-        <SafeAreaView style={styles.container}>
-            <Button>Кнопка</Button>
-            <FlatList
-                data={DATA}
-                renderItem={({item}) => <Item title={item.title} />}
-            />
-        </SafeAreaView>
-    </NativeBaseProvider>
-);
-
-const Tab = createBottomTabNavigator();
-
-const App = () => {
-    return (
-        <NavigationContainer>
-        <Tab.Navigator   screenOptions={{
-            headerShown: false,
-            tabBarIcon : ({focused}) => (
-                <View></View>
-            )
-        }
-        }
-        >
-            <Tab.Screen
-                name="Popular"
-                component={PopularScreen }
-                options={{
-                title: 'Популярое',
-            }} />
-            <Tab.Screen
-                name="Recommended"
-                component={RecommendedScreen}
-                options={{
-                    title: 'Рекомендации',}}
-            />
-            <Tab.Screen
-                name="History"
-                component={PopularScreen}
-                options={{
-                    title: 'История',}}
-            />
-            <Tab.Screen
-                name="Profile"
-                component={RecommendedScreen}
-                options={{
-                    title: 'Профиль',}}
-            />
-        </Tab.Navigator>
-        </NavigationContainer>
+        <Text style={{color: focused ? colors.mainBlue : colors.mainWhite}}>{translatedNames[name]}</Text>
+    </View>
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        marginTop: StatusBar.currentHeight || 0,
-        backgroundColor: '#555555',
-    },
-    item: {
-        backgroundColor: '#161616',
-        padding: 20,
-        marginVertical: 8,
-        marginHorizontal: 16,
+const screenOptions = ({route,title}) =>({
+    tabBarStyle: mainStyles.tabBar,
+    headerShown: false,
+    tabBarShowLabel: false,
+    tabBarIcon: ({focused}) => (
+        <BottomTabIcon name={route.name} focused={focused}/>
+    ),
+})
 
-    },
-    title: {
-        fontSize: 32,
-        color: '#FFFFFF',
-    },
-});
+const Tab = createBottomTabNavigator();
+const App = () => {
+    return (
+        <NativeBaseProvider style={{backgroundColor: colors.mainGray}}>
+        <NavigationContainer>
+            <View style={{backgroundColor: colors.mainGray,flex:1}}>
+                <Tab.Navigator s screenOptions={screenOptions}>
+                    <Tab.Screen
+                        name="Popular"
+                        component={Screens.PopularScreen}
+                        options={{
+                        title: 'Популярное',
+                    }} />
+                    <Tab.Screen
+                        name="Recommended"
+                        component={Screens.RecommendedScreen}
+                        options={{
+                            title: 'Рекомендации',}}
+                    />
+                    <Tab.Screen
+                        name="History"
+                        component={Screens.HistoryScreen}
+                        options={{
+                            title: 'История',}}
+                    />
+                    <Tab.Screen
+                        name="Profile"
+                        component={Screens.ProfileScreen}
+                        options={{
+                            title: 'Профиль',}}
+                    />
+                </Tab.Navigator>
+            </View>
+        </NavigationContainer>
+        </NativeBaseProvider>
+    );
+};
 
 export default App;
