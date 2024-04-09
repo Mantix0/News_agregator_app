@@ -43,8 +43,16 @@ const mainStyles = StyleSheet.create({
     radioContainer:{
         backgroundColor:colors.mainBlack,
         borderBottomLeftRadius:15,
-        borderBottomRightRadius:15,
         height:40
+    },
+    header:{
+        backgroundColor:colors.mainBlack,
+        borderBottomLeftRadius:15,
+        borderBottomRightRadius:15,
+        height:40,
+        flexDirection:"row",
+        alignItems: "center",
+        justifyContent: "flex-end",
     },
     radioButton:{
         borderRadius:20,
@@ -55,7 +63,14 @@ const mainStyles = StyleSheet.create({
         paddingLeft:2,
         height:25,
         alignItems:'center'
-    }
+    },
+    profileItem:{
+        backgroundColor: colors.mainBlack,
+        padding: 10,
+        borderRadius: 15,
+        marginVertical: 8,
+        marginHorizontal: 16,
+    },
 });
 
 export default mainStyles;
