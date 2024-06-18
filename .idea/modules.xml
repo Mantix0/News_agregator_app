@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/News_agregator_app.iml" filepath="$PROJECT_DIR$/.idea/News_agregator_app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/News_aggregator_app.iml" filepath="$PROJECT_DIR$/.idea/News_aggregator_app.iml" />
     </modules>
   </component>
 </project>

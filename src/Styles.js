@@ -57,10 +57,8 @@ const mainStyles = StyleSheet.create({
     radioButton:{
         borderRadius:20,
         marginLeft:5,
-        paddingTop:2,
-        paddingBottom:2,
-        paddingRight:2,
-        paddingLeft:2,
+        paddingHorizontal:4,
+        paddingVertical:2,
         height:25,
         alignItems:'center'
     },
@@ -71,6 +69,41 @@ const mainStyles = StyleSheet.create({
         marginVertical: 8,
         marginHorizontal: 16,
     },
+    sourceLogo:{
+        width: 35,
+        height: 35,
+        borderRadius: 50,
+        borderColor:colors.mainBlue,
+        borderWidth:1},
+
+    article: {
+        backgroundColor: colors.mainBlack,
+        padding: 20,
+        borderRadius: 15,
+        marginVertical: 5,
+    },
+    tagContainer:{
+        marginRight:6,
+        backgroundColor:colors.mainBlue,
+        borderRadius:14,
+        paddingHorizontal:6,
+        paddingVertical:2,
+    },
+    articlePreview:{
+        height:200,
+        width:400,
+        borderTopLeftRadius: 15,
+        borderTopRightRadius: 15,
+
+    },
+    articleContainer:{
+        backgroundColor: colors.mainBlack,
+        borderRadius: 15,
+        marginVertical: 5,
+        marginHorizontal: 12,
+    },
+
+
 });
 
 export default mainStyles;
