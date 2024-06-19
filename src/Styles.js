@@ -102,6 +102,18 @@ const mainStyles = StyleSheet.create({
         marginVertical: 5,
         marginHorizontal: 12,
     },
+    historyEntryContainer:{
+        backgroundColor: colors.mainBlack,
+        borderRadius: 15,
+        marginVertical: 5,
+        marginHorizontal: 12,
+    },
+    historyEntry:{
+        backgroundColor: colors.mainBlack,
+        padding: 10,
+        borderRadius: 15,
+        marginVertical: 0,
+    },
 
 
 });

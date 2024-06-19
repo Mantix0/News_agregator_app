@@ -34,8 +34,16 @@ const PopularScreen = ({navigation}) =>{
 
     const fetchData = React.useCallback( async ()=>{
 
+        const max_amount = 10
+        const time_period = 7
+
         try {
-            const response = await fetch(Constants.apiUrl);
+            const response = await fetch(Constants.apiUrl+"article_list/popular",{
+                method: "POST",
+                    headers: {'Content-Type':'application/x-www-form-urlencoded'},
+                    body: `max_amount=${max_amount}&time_period=${time_period}`
+            }
+                );
             const json = await response.json();
             setData(json.articles);
             console.log('fetched')
@@ -137,7 +145,7 @@ const HistoryScreen = ({navigation }) =>{
         </View>
         <FlatList
             data={data}
-            renderItem={({item}) => <Components.Article article={item} navigation={navigation} />}
+            renderItem={({item}) => <Components.HistoryEntry article={item} navigation={navigation} />}
         />
     </SafeAreaView>
 )};
@@ -155,16 +163,37 @@ const ProfileScreen = ({navigation,route }) =>(
 const ArticleScreen = ({navigation,route }) => {
     const article = route.params.article
     const date = Utils.getElapsedTime(article.publication_date)
+    const [content, setContent] = React.useState('');
 
     useEffect( () => {
         (async () =>  {
+
             let history = await storage.getDataObj("history")
+
+
+
+            const links = history.map((i)=>(i.article_link))
+
+            if (links.includes(article.article_link) === false){
+                await fetch(Constants.apiUrl + "update_views?link=" + String(article.article_link))
+                console.log("updated")
+            }
+
             history = await history.filter((ar) => (ar.article_link !== article.article_link ))
             await history.push(article)
             await storage.storeDataObj("history", history)
+
+
+            const response = await fetch(Constants.apiUrl+"article_content?link="+String(article.article_link))
+            const json = await response.json()
+            setContent(json)
+
+
+
         })()
 
     }, [])
+
 
     return(
 
@@ -207,11 +236,11 @@ const ArticleScreen = ({navigation,route }) => {
                 <View style={{marginVertical:8}}>
                     {/*<Text style={{color: colors.mainWhite,fontWeight: '300',fontSize: 14}}>{article.text}</Text>*/}
                     <RenderHtml
-                        source={{html:article.article_content}}
+                        source={{html:String(content)}}
                         baseStyle={{color:colors.mainWhite}}
                         tagsStyles={{a:{ textDecorationLine:'none', color:colors.mainBlue } }}
                         contentWidth={200}
-                        ignoredDomTags={["svg", "source", "lite-youtube"]}
+                        ignoredDomTags={["svg", "source", "lite-youtube", "iframe", "button"]}
                     />
                 </View>
                 <View style={{marginBottom:20}}>
