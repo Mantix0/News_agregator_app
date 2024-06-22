@@ -1,6 +1,6 @@
-import {FlatList, RefreshControl, SafeAreaView, Text, View} from "react-native";
+import {ActivityIndicator, FlatList, RefreshControl, SafeAreaView, Text, View} from "react-native";
 import {Image, Pressable, ScrollView} from "native-base";
-import React, {useCallback, useEffect} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import mainStyles from "./Styles";
 import * as colors from './res/colors.js'
 import styles from "./Styles";
@@ -29,41 +29,76 @@ const search = (navigation) => {
 
 const PopularScreen = ({navigation}) =>{
 
-    const [refreshing, setRefreshing] = React.useState(false);
-    const [data, setData] = React.useState([]);
+    const [refreshing, setRefreshing] = useState(false);
+    const [data, setData] = useState([]);
+    const [checked, setChecked] = useState(Constants.popularButtonsData[0].title);
+    const nextPageIdentifierRef = useRef(0)
+    const [isLoading, setIsLoading] = useState(true);
+    const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(true)
+    const flatListRef = useRef()
 
-    const fetchData = React.useCallback( async ()=>{
 
-        const max_amount = 10
-        const time_period = 7
+
+    const fetchData = async ()=>{
+
+        const max_amount = 5
+        const time_period = checked === "За день" ? 1 : checked === "За неделю" ? 7 : 30
+
+        setIsLoading(true);
 
         try {
             const response = await fetch(Constants.apiUrl+"article_list/popular",{
                 method: "POST",
                     headers: {'Content-Type':'application/x-www-form-urlencoded'},
-                    body: `max_amount=${max_amount}&time_period=${time_period}`
+                    body: `time_period=${time_period}&next_page_identifier=${nextPageIdentifierRef.current}`
             }
                 );
             const json = await response.json();
-            setData(json.articles);
-            console.log('fetched')
+            setData((data) =>([...data, ...json.articles]));
+            nextPageIdentifierRef.current = json.next_page_identifier
+            console.log('fetched',json.articles.length)
         } catch (error) {
             console.error(error);
         }
-    },[])
+        setIsLoading(false);
 
-    useEffect(() => {
+    }
+
+    const fetchNextPage = () => {
+        if (nextPageIdentifierRef.current == null || isLoading) {
+            // End of data.
+            return;
+        }
         fetchData();
-    }, []);
-
+    };
 
     const onRefresh = React.useCallback(() => {
-        fetchData()
         setRefreshing(true);
+        nextPageIdentifierRef.current = 0
+        setData([])
+        fetchData();
         setTimeout(() => {
             setRefreshing(false);
-        }, 2000);
+        }, 1000);
     }, []);
+
+
+    useEffect(() => {
+        nextPageIdentifierRef.current = 0
+        setData([])
+        flatListRef?.current?.scrollToOffset({ animated: true, offset: 0 })
+        fetchData();
+    }, [checked]);
+
+
+
+
+    const ListEndLoader = () => {
+        if (nextPageIdentifierRef.current !== 0 && isLoading) {
+            // Show loader at the end of list when fetching next page data.
+            return <ActivityIndicator size={'large'} />;
+        }
+    };
 
     return(
     <SafeAreaView style={mainStyles.container}>
@@ -71,7 +106,10 @@ const PopularScreen = ({navigation}) =>{
             <Components.ButtonGroup
                 data={Constants.popularButtonsData}
                 containerStyle = {mainStyles.radioContainer}
-                buttonStyle={mainStyles.radioButton}/>
+                buttonStyle={mainStyles.radioButton}
+                checked={checked}
+                setChecked={setChecked}
+            />
             <Pressable onPress={()=>{search(navigation)}}>
             <Image
                 source={require(`./icons/Search.png`)}
@@ -79,49 +117,148 @@ const PopularScreen = ({navigation}) =>{
                 style={{width:30, height:30, marginRight:10}}
             /></Pressable>
         </View>
+        <View style={{flex:1, height:this.height}}>
         <FlatList
+            ref={flatListRef}
+            initialNumToRender={10}
+            ListFooterComponent={ListEndLoader}
+            onEndReachedThreshold = {0.4}
+            onMomentumScrollBegin = {() => {setOnEndReachedCalledDuringMomentum(false)}}
+            onEndReached = {() => {
+                if (!onEndReachedCalledDuringMomentum) {
+                    fetchNextPage()
+                    setOnEndReachedCalledDuringMomentum(true);
+                }
+            }
+            }
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             data={data}
             renderItem={({item}) => <Components.Article article={item} navigation={navigation} />}
         />
+        </View>
     </SafeAreaView>)
 };
 
 const RecommendedScreen = ({navigation }) => {
-    const [refreshing, setRefreshing] = React.useState(false);
+
+    const [refreshing, setRefreshing] = useState(false);
+    const [data, setData] = useState([]);
+    const [checked, setChecked] = useState(Constants.recommendedButtonsData[0].title);
+    const nextPageIdentifierRef = useRef(0)
+    const [isLoading, setIsLoading] = useState(true);
+    const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(true)
+    const flatListRef = useRef()
+
+
+
+    const fetchData = async ()=>{
+
+        const tags = await storage.getDataObj("tags")
+
+        let preferred_tags = []
+        let banned_tags = []
+
+        for (const tag in tags) {
+            if (tags[tag] === "preferred")
+                preferred_tags.push(tag)
+            else if (tags[tag] === "banned")
+                banned_tags.push(tag)
+        }
+
+        try {
+            const response = await fetch(Constants.apiUrl+"article_list/recommended",{
+                    method: "POST",
+                    headers: {'Content-Type':'application/x-www-form-urlencoded'},
+                    body: `next_page_identifier=${nextPageIdentifierRef.current}&preferred_tags=${preferred_tags}&banned_tags=${banned_tags}`
+                }
+            );
+            const json = await response.json();
+            setData((data) =>([...data, ...json.articles]));
+            nextPageIdentifierRef.current = json.next_page_identifier
+            console.log('fetched',json.articles.length)
+        } catch (error) {
+            console.error(error);
+        }
+        setIsLoading(false);
+
+    }
+
+    const fetchNextPage = () => {
+        if (nextPageIdentifierRef.current == null || isLoading) {
+            // End of data.
+            return;
+        }
+        fetchData();
+    };
 
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
+        nextPageIdentifierRef.current = 0
+        setData([])
+        fetchData();
         setTimeout(() => {
             setRefreshing(false);
-        }, 2000);
+        }, 1000);
     }, []);
 
-    return (
-    <SafeAreaView style={mainStyles.container}>
-        <View style={mainStyles.header}>
-            <Components.ButtonGroup
-                data={Constants.recommendedButtonsData}
-                containerStyle = {mainStyles.radioContainer}
-                buttonStyle={mainStyles.radioButton}/>
-            <Pressable onPress={()=>{search(navigation)}}>
-                <Image
-                    source={require(`./icons/Search.png`)}
-                    alt={`Поиск`}
-                    style={{width:30, height:30, marginRight:10}}
-                /></Pressable>
-        </View>
-        <FlatList
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-            data={DATA}
-            renderItem={({item}) => <Components.Article article={item} navigation={navigation} />}
-        />
-    </SafeAreaView>
-)};
+
+    useEffect(() => {
+        nextPageIdentifierRef.current = 0
+        setData([])
+        flatListRef?.current?.scrollToOffset({ animated: false, offset: 0 })
+        fetchData();
+    }, [checked]);
+
+
+    const ListEndLoader = () => {
+        if (nextPageIdentifierRef.current !== 0 && isLoading) {
+            // Show loader at the end of list when fetching next page data.
+            return <ActivityIndicator size={'large'} />;
+        }
+    };
+
+    return(
+        <SafeAreaView style={mainStyles.container}>
+            <View style={mainStyles.header}>
+                <Components.ButtonGroup
+                    data={Constants.recommendedButtonsData}
+                    containerStyle = {mainStyles.radioContainer}
+                    buttonStyle={mainStyles.radioButton}
+                    checked={checked}
+                    setChecked={setChecked}
+                />
+                <Pressable onPress={()=>{search(navigation)}}>
+                    <Image
+                        source={require(`./icons/Search.png`)}
+                        alt={`Поиск`}
+                        style={{width:30, height:30, marginRight:10}}
+                    /></Pressable>
+            </View>
+            <View style={{flex:1, height:this.height}}>
+                <FlatList
+                    ref={flatListRef}
+                    initialNumToRender={10}
+                    ListFooterComponent={ListEndLoader}
+                    onEndReachedThreshold = {0.4}
+                    onMomentumScrollBegin = {() => {setOnEndReachedCalledDuringMomentum(false)}}
+                    onEndReached = {() => {
+                        if (!onEndReachedCalledDuringMomentum) {
+                            fetchNextPage()
+                            setOnEndReachedCalledDuringMomentum(true);
+                        }
+                    }
+                    }
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                    data={data}
+                    renderItem={({item}) => <Components.Article article={item} navigation={navigation} />}
+                />
+            </View>
+        </SafeAreaView>)
+};
 
 const HistoryScreen = ({navigation }) =>{
 
-    const [data, setData] = React.useState([]);
+    const [data, setData] = useState([]);
 
     useEffect( () => {
         (async () =>  {
@@ -163,17 +300,14 @@ const ProfileScreen = ({navigation,route }) =>(
 const ArticleScreen = ({navigation,route }) => {
     const article = route.params.article
     const date = Utils.getElapsedTime(article.publication_date)
-    const [content, setContent] = React.useState('');
+    const [content, setContent] = useState('');
 
     useEffect( () => {
         (async () =>  {
 
             let history = await storage.getDataObj("history")
 
-
-
             const links = history.map((i)=>(i.article_link))
-
             if (links.includes(article.article_link) === false){
                 await fetch(Constants.apiUrl + "update_views?link=" + String(article.article_link))
                 console.log("updated")
@@ -183,20 +317,14 @@ const ArticleScreen = ({navigation,route }) => {
             await history.push(article)
             await storage.storeDataObj("history", history)
 
-
             const response = await fetch(Constants.apiUrl+"article_content?link="+String(article.article_link))
             const json = await response.json()
             setContent(json)
-
-
-
         })()
 
     }, [])
 
-
     return(
-
         <SafeAreaView style={mainStyles.container}>
             <View style={mainStyles.header}>
                 <Pressable onPress={()=>{search(navigation)}}>
@@ -260,7 +388,7 @@ const ArticleScreen = ({navigation,route }) => {
 
 const PreferencesScreen = ({navigation,route }) =>{
 
-    const [tags, setTags] = React.useState({});
+    const [tags, setTags] = useState({});
 
     useEffect( () => {
         (async () =>  {

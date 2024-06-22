@@ -7,8 +7,7 @@ import * as storage from "./Storage"
 import * as utils from "./utils"
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const ButtonGroup = ({containerStyle,data,buttonStyle}) =>{
-    const [checked, setChecked] = React.useState(data[0].title);
+const ButtonGroup = ({containerStyle,data,buttonStyle,checked,setChecked}) =>{
     return(
         <FlatList
             contentContainerStyle={{alignItems:'center'}}

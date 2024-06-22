@@ -92,7 +92,6 @@ const App = () => {
 
     useEffect( () => {
         (async () =>  {
-            await AsyncStorage.clear()
             await storage.initStorage()
         })()
 
