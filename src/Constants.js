@@ -1,26 +1,26 @@
 const navigationIcons = {
-    inactivePopularIcon :{
+    inactivePopularStackIcon :{
         source: require(`./icons/Popular.png`),
     },
-    inactiveRecommendedIcon :{
+    inactiveRecommendedStackIcon :{
         source: require(`./icons/Recommended.png`),
     },
-    inactiveHistoryIcon :{
+    inactiveHistoryStackIcon :{
         source: require(`./icons/History.png`),
     },
-    inactiveProfileIcon :{
+    inactiveProfileStackIcon :{
         source: require(`./icons/Profile.png`),
     },
-    activePopularIcon :{
+    activePopularStackIcon :{
         source: require(`./icons/activePopular.png`),
     },
-    activeRecommendedIcon :{
+    activeRecommendedStackIcon :{
         source: require(`./icons/activeRecommended.png`),
     },
-    activeHistoryIcon :{
+    activeHistoryStackIcon :{
         source: require(`./icons/activeHistory.png`),
     },
-    activeProfileIcon :{
+    activeProfileStackIcon :{
         source: require(`./icons/activeProfile.png`),
     },
 }
@@ -32,7 +32,7 @@ const popularButtonsData = [
 ]
 
 const recommendedButtonsData = [
-    {title: 'По релевантности'},
+    // {title: 'По релевантности'},
     {title: 'По рейтингу'},
     {title: 'По времени'},
 ]
@@ -47,10 +47,10 @@ const profileData = [
 ]
 
 const translatedNames = {
-    Popular:'Популярное',
-    Recommended:'Рекомендации',
-    History:'История',
-    Profile:'Профиль'
+    PopularStack:'Популярное',
+    RecommendedStack:'Рекомендации',
+    HistoryStack:'История',
+    ProfileStack:'Профиль'
 }
 
 const apiUrl = "https://mantix0.pythonanywhere.com/news_aggregator/api/"

@@ -122,7 +122,7 @@ const PopularScreen = ({navigation}) =>{
             ref={flatListRef}
             initialNumToRender={10}
             ListFooterComponent={ListEndLoader}
-            onEndReachedThreshold = {0.4}
+            onEndReachedThreshold = {0.8}
             onMomentumScrollBegin = {() => {setOnEndReachedCalledDuringMomentum(false)}}
             onEndReached = {() => {
                 if (!onEndReachedCalledDuringMomentum) {
@@ -239,7 +239,7 @@ const RecommendedScreen = ({navigation }) => {
                     ref={flatListRef}
                     initialNumToRender={10}
                     ListFooterComponent={ListEndLoader}
-                    onEndReachedThreshold = {0.4}
+                    onEndReachedThreshold = {0.8}
                     onMomentumScrollBegin = {() => {setOnEndReachedCalledDuringMomentum(false)}}
                     onEndReached = {() => {
                         if (!onEndReachedCalledDuringMomentum) {
@@ -301,6 +301,7 @@ const ArticleScreen = ({navigation,route }) => {
     const article = route.params.article
     const date = Utils.getElapsedTime(article.publication_date)
     const [content, setContent] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect( () => {
         (async () =>  {
@@ -320,6 +321,7 @@ const ArticleScreen = ({navigation,route }) => {
             const response = await fetch(Constants.apiUrl+"article_content?link="+String(article.article_link))
             const json = await response.json()
             setContent(json)
+            setIsLoading(false)
         })()
 
     }, [])
@@ -361,6 +363,9 @@ const ArticleScreen = ({navigation,route }) => {
                 <View>
                     <Text style={{color: colors.mainWhite,fontWeight: '600',fontSize: 20}}>{article.title}</Text>
                 </View>
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    {isLoading && <ActivityIndicator size={"large"} color={colors.mainBlue} style={{marginTop: 20}} />}
+                </View>
                 <View style={{marginVertical:8}}>
                     {/*<Text style={{color: colors.mainWhite,fontWeight: '300',fontSize: 14}}>{article.text}</Text>*/}
                     <RenderHtml
@@ -372,13 +377,14 @@ const ArticleScreen = ({navigation,route }) => {
                     />
                 </View>
                 <View style={{marginBottom:20}}>
+                    {!isLoading &&
                     <FlatList
                         showsHorizontalScrollIndicator={false}
                         data={article.tag_list}
                         horizontal={true}
                         scrollEnabled={false}
                         renderItem={({item}) => <View style={mainStyles.tagContainer}><Text style={{color: colors.mainWhite,fontWeight:'300',fontSize:14}}>{item}</Text></View>}
-                    />
+                    />}
                 </View>
                 </View>
             </ScrollView>
